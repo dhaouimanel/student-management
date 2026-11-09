@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des étudiants</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234f46e5'/%3E%3Ctext x='32' y='43' font-size='34' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='700'%3EE%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div>
+        <h1>Gestion des étudiants</h1>
+        <p class="subtitle">Ajoutez, consultez, modifiez et supprimez les dossiers étudiants.</p>
+      </div>
+      <button class="btn btn-primary" id="addBtn" type="button">+ Ajouter un étudiant</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- Statistiques -->
+    <section class="stats" aria-label="Statistiques">
+      <div class="stat"><span class="stat-value" id="statTotal">–</span><span class="stat-label">Étudiants</span></div>
+      <div class="stat"><span class="stat-value" id="statCourses">–</span><span class="stat-label">Filières</span></div>
+      <div class="stat"><span class="stat-value" id="statRecent">–</span><span class="stat-label">Ajoutés (30 jours)</span></div>
+    </section>
+
+    <!-- Barre d'outils -->
+    <section class="toolbar" aria-label="Recherche et filtres">
+      <input type="search" id="search" placeholder="Rechercher par nom, prénom ou e-mail…" aria-label="Rechercher">
+      <select id="courseFilter" aria-label="Filtrer par filière">
+        <option value="">Toutes les filières</option>
+      </select>
+      <select id="sortSelect" aria-label="Trier">
+        <option value="createdAt:desc">Plus récents</option>
+        <option value="createdAt:asc">Plus anciens</option>
+        <option value="lastName:asc">Nom (A → Z)</option>
+        <option value="lastName:desc">Nom (Z → A)</option>
+        <option value="level:asc">Niveau croissant</option>
+        <option value="level:desc">Niveau décroissant</option>
+      </select>
+    </section>
+
+    <!-- Liste -->
+    <section class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Étudiant</th>
+              <th>E-mail</th>
+              <th>Filière</th>
+              <th>Niveau</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="state" id="stateBox" hidden></div>
+
+      <nav class="pagination" id="pagination" aria-label="Pagination" hidden>
+        <button class="btn btn-ghost" id="prevBtn" type="button">← Précédent</button>
+        <span id="pageInfo"></span>
+        <button class="btn btn-ghost" id="nextBtn" type="button">Suivant →</button>
+      </nav>
+    </section>
+  </main>
+
+  <!-- Formulaire ajout / modification -->
+  <dialog id="formDialog" aria-labelledby="formTitle">
+    <form id="studentForm" novalidate>
+      <h2 id="formTitle">Ajouter un étudiant</h2>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="firstName">Prénom *</label>
+          <input id="firstName" name="firstName" type="text" required maxlength="50" autocomplete="off">
+          <small class="error" data-error-for="firstName"></small>
+        </div>
+        <div class="field">
+          <label for="lastName">Nom *</label>
+          <input id="lastName" name="lastName" type="text" required maxlength="50" autocomplete="off">
+          <small class="error" data-error-for="lastName"></small>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="email">E-mail *</label>
+          <input id="email" name="email" type="email" required autocomplete="off">
+          <small class="error" data-error-for="email"></small>
+        </div>
+        <div class="field">
+          <label for="phone">Téléphone</label>
+          <input id="phone" name="phone" type="tel" autocomplete="off">
+          <small class="error" data-error-for="phone"></small>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="field">
+          <label for="course">Filière *</label>
+          <input id="course" name="course" type="text" required maxlength="80" list="courseList" autocomplete="off">
+          <datalist id="courseList"></datalist>
+          <small class="error" data-error-for="course"></small>
+        </div>
+        <div class="field">
+          <label for="level">Niveau *</label>
+          <select id="level" name="level" required>
+            <option value="1">1ère année</option>
+            <option value="2">2ème année</option>
+            <option value="3">3ème année</option>
+            <option value="4">4ème année</option>
+            <option value="5">5ème année</option>
+          </select>
+          <small class="error" data-error-for="level"></small>
+        </div>
+        <div class="field">
+          <label for="dateOfBirth">Date de naissance</label>
+          <input id="dateOfBirth" name="dateOfBirth" type="date">
+          <small class="error" data-error-for="dateOfBirth"></small>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="address">Adresse</label>
+        <input id="address" name="address" type="text" maxlength="200" autocomplete="off">
+        <small class="error" data-error-for="address"></small>
+      </div>
+
+      <p class="form-error" id="formError" role="alert" hidden></p>
+
+      <div class="dialog-actions">
+        <button class="btn btn-ghost" type="button" id="cancelForm">Annuler</button>
+        <button class="btn btn-primary" type="submit" id="saveBtn">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Détails -->
+  <dialog id="detailDialog" aria-labelledby="detailName">
+    <div class="detail-head">
+      <div class="avatar avatar-lg" id="detailAvatar"></div>
+      <div>
+        <h2 id="detailName"></h2>
+        <p class="muted" id="detailCourse"></p>
+      </div>
+    </div>
+    <dl class="detail-list" id="detailList"></dl>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost" type="button" id="closeDetail">Fermer</button>
+      <button class="btn btn-primary" type="button" id="editFromDetail">Modifier</button>
+    </div>
+  </dialog>
+
+  <!-- Confirmation de suppression -->
+  <dialog id="deleteDialog" aria-labelledby="deleteTitle">
+    <h2 id="deleteTitle">Supprimer cet étudiant ?</h2>
+    <p id="deleteText"></p>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost" type="button" id="cancelDelete">Annuler</button>
+      <button class="btn btn-danger" type="button" id="confirmDelete">Supprimer</button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
